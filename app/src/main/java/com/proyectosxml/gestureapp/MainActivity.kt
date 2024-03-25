@@ -16,6 +16,8 @@ import android.view.MotionEvent
 
 class MainActivity : AppCompatActivity() {
     private lateinit var moveView: MoveView
+    private lateinit var moveCanvasView: MoveView
+    private lateinit var moveFrameLayout: MoveView
     private lateinit var rotationGestureDetector: RotationGestureDetector
     private lateinit var scaleGestureDetector: ScaleGestureDetector
     private var canInteractWithImage = false // Estado para controlar si se puede interactuar con la imagen
@@ -41,6 +43,8 @@ class MainActivity : AppCompatActivity() {
 
         // Inicializar las instancias de las clases
         moveView = MoveView(this, fullScreenImage)
+        moveCanvasView = MoveView(this, canvasView)
+        moveFrameLayout = MoveView(this, frameLayout)
         rotationGestureDetector = RotationGestureDetector(object : OnRotationGestureListener {
             override fun onRotation(rotationDetector: RotationGestureDetector) {
                 // Implementar la lógica de rotación aquí
@@ -74,24 +78,23 @@ class MainActivity : AppCompatActivity() {
                 moveView.onTouchEvent(event)
                 rotationGestureDetector.onTouchEvent(event)
                 scaleGestureDetector.onTouchEvent(event)
-                true // Consumir el evento cuando se está interactuando con la imagen
             } else {
-                if (event.action == MotionEvent.ACTION_DOWN) {
-                    val x = event.x
-                    val y = event.y
-                    val rect = Rect()
-                    fullScreenImage.getGlobalVisibleRect(rect)
-                    if (rect.contains(x.toInt(), y.toInt())) {
-                        true // Procesar el evento solo si está dentro de los límites de la imagen
-                    } else {
-                        frameLayout.visibility = View.GONE
-                        canvasView.visibility = View.VISIBLE
-                        true // Procesar el evento y evitar que se propague al canvas subyacente
-                    }
-                } else {
-                    true // Procesar el evento y evitar que se propague al canvas subyacente
+                moveFrameLayout.onTouchEvent(event)
+            }
+            true
+        }
+
+        canvasView.setOnTouchListener { _, event ->
+            moveCanvasView.onTouchEvent(event)
+            if (event.action == MotionEvent.ACTION_UP) {
+                if (canInteractWithImage) {
+                    val canvasImage: Bitmap = canvasView.bitmap
+                    fullScreenImage.setImageBitmap(canvasImage)
+                    frameLayout.visibility = View.VISIBLE
+                    canvasView.visibility = View.GONE
                 }
             }
+            true
         }
 
         // Configurar el OnClickListener para el botón de regreso
@@ -100,16 +103,6 @@ class MainActivity : AppCompatActivity() {
             frameLayout.visibility = View.GONE
             canvasView.visibility = View.VISIBLE
             canInteractWithImage = false // Restablecer el estado para deshabilitar la interacción con la imagen
-        }
-
-        // Configurar el OnClickListener para la vista del Canvas
-        canvasView.setOnClickListener {
-            if (canInteractWithImage) {
-                val canvasImage: Bitmap = canvasView.bitmap
-                fullScreenImage.setImageBitmap(canvasImage)
-                frameLayout.visibility = View.VISIBLE
-                canvasView.visibility = View.GONE
-            }
         }
     }
 }
