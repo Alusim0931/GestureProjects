@@ -39,43 +39,4 @@
 
     </com.google.android.material.bottomappbar.BottomAppBar>
 
-    <!-- Mover la definición del FrameLayout al final del archivo -->
-    <FrameLayout
-        android:id="@+id/frameLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/white"
-        android:visibility="gone">
-
-        <ImageView
-            android:id="@+id/fullScreenImage"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop" />
-
-        <com.google.android.material.bottomappbar.BottomAppBar
-            android:id="@+id/newBottomAppBar"
-            android:layout_width="800dp"
-            android:layout_height="100dp"
-            android:layout_gravity="bottom"
-            tools:ignore="BottomAppBar">
-
-            <ImageButton
-                android:id="@+id/backToCanvasButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/baseline_arrow_back_24"
-                android:layout_margin="8dp"/>
-
-            <ImageButton
-                android:id="@+id/rotateImagButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_launcher_background"
-                android:layout_margin="8dp"/>
-
-        </com.google.android.material.bottomappbar.BottomAppBar>
-
-    </FrameLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>

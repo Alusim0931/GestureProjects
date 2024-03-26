@@ -1,8 +1,6 @@
 package com.proyectosxml.gestureapp
 
 import android.annotation.SuppressLint
-import android.graphics.Bitmap
-import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
@@ -10,19 +8,18 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import android.view.GestureDetector
-import android.view.MotionEvent
+import android.view.ScaleGestureDetector
+
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var moveView: MoveView
-    private lateinit var moveCanvasView: CanvasMoveView
-    private lateinit var moveFrameLayout: MoveView
     private lateinit var rotationGestureDetector: RotationGestureDetector
-    private lateinit var scaleGestureDetector: CustomScaleGestureDetector
+    private lateinit var scaleGestureDetector: ScaleGestureDetector
     private var canInteractWithImage = false // Estado para controlar si se puede interactuar con la imagen
-    private var imageState = ImageState() // Estado de la imagen
-    private lateinit var fullScreenImage: ImageView
+    private var imageState = ImageState()// Estado de la imagen
+    private var isImageVisible = false
+    private var isButton1Clicked = false
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,92 +28,70 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val button1 = findViewById<ImageButton>(R.id.button1)
-        val frameLayout = findViewById<FrameLayout>(R.id.frameLayout)
-        fullScreenImage = findViewById<ImageView>(R.id.fullScreenImage)
         val canvasView = findViewById<FirstCanvasView>(R.id.canvasView)
 
-        // Inicializar la instancia de CanvasMoveView
-        moveCanvasView = CanvasMoveView(this, canvasView)
+        // Inicializar la instancia de MoveView
+        moveView = MoveView(this, canvasView)
 
         // Configurar el OnClickListener para el botón 1
         button1.setOnClickListener {
-            canInteractWithImage = true // Permitir interacción con la imagen al hacer clic en el botón 1
-            fullScreenImage.setOnTouchListener { _, event ->
-                scaleGestureDetector.onTouchEvent(event)
-                rotationGestureDetector.onTouchEvent(event)
-                moveView.onTouchEvent(event)
-                true
+            if (!isButton1Clicked) {
+                canInteractWithImage = true // Permitir interacción con la imagen al hacer clic en el botón 1
+                canvasView.setOnTouchListener { _, event ->
+                    moveView.onTouchEvent(event)
+                    rotationGestureDetector.onTouchEvent(event)
+                    scaleGestureDetector.onTouchEvent(event)
+                    true
+                }
+                isButton1Clicked = true // Actualizar el estado a true después del primer clic
             }
         }
 
         // Configurar el OnClickListener para el botón 2
         val button2 = findViewById<ImageButton>(R.id.button2)
         button2.setOnClickListener {
-            canInteractWithImage = false
-            val x = (0 until canvasView.width).random().toFloat()
-            val y = (0 until canvasView.height).random().toFloat()
-            canvasView.drawRandomSizedBitmapAt(x, y) // Mostrar la imagen cuando se haga clic en el botón 2
+            if (isImageVisible) {
+                // Si la imagen está visible, ocúltala
+                canvasView.visibility = View.GONE
+            } else {
+                // Si la imagen está oculta, muéstrala en una posición aleatoria
+                val x = (0 until canvasView.width).random().toFloat()
+                val y = (0 until canvasView.height).random().toFloat()
+                canvasView.drawRandomSizedBitmapAt(x, y)
+                canvasView.visibility = View.VISIBLE
+            }
+            // Alternar el estado de visibilidad de la imagen
+            isImageVisible = !isImageVisible
         }
 
         // Inicializar las instancias de las clases
-        moveView = MoveView(this, fullScreenImage)
-        moveFrameLayout = MoveView(this, frameLayout)
         rotationGestureDetector = RotationGestureDetector(object : OnRotationGestureListener {
             override fun onRotation(rotationDetector: RotationGestureDetector) {
                 // Implementar la lógica de rotación aquí
                 val angle = rotationDetector.getAngle()
-                fullScreenImage.rotation = angle
+                canvasView.rotation = angle
                 // Actualizar el estado de la imagen al rotar en el FrameLayout
                 imageState.rotation = angle
             }
         })
 
-        scaleGestureDetector = CustomScaleGestureDetector(this, object : CustomScaleGestureDetector.OnScaleGestureListener {
-            override fun onScale(scaleFactor: Float) {
+        scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.OnScaleGestureListener {
+            override fun onScale(detector: ScaleGestureDetector): Boolean {
                 // Implementar la lógica de escalado aquí
-                fullScreenImage.scaleX *= scaleFactor
-                fullScreenImage.scaleY *= scaleFactor
+                val scaleFactor = detector.scaleFactor
+                canvasView.scaleX *= scaleFactor
+                canvasView.scaleY *= scaleFactor
+                return true
+            }
+
+            override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
+                return true // Indicar que queremos que el gesto de escala continúe
+            }
+
+            override fun onScaleEnd(detector: ScaleGestureDetector) {
+                // Aquí puedes realizar alguna acción al finalizar el gesto de escala si es necesario
             }
         })
 
-        frameLayout.setOnTouchListener { _, event ->
-            if (canInteractWithImage) {
-                rotationGestureDetector.onTouchEvent(event)
-                moveView.onTouchEvent(event)
-            } else {
-                moveFrameLayout.onTouchEvent(event)
-            }
-            true
-        }
-
-        canvasView.setOnTouchListener { _, event ->
-            if (canInteractWithImage) {
-                moveCanvasView.onTouchEvent(event)
-            }
-            true
-        }
-
-        // Configurar el OnClickListener para el botón de regreso
-        val backToCanvasButton = findViewById<ImageButton>(R.id.backToCanvasButton)
-        backToCanvasButton.setOnClickListener {
-            frameLayout.visibility = View.GONE
-            canvasView.visibility = View.VISIBLE
-            canInteractWithImage = false // Restablecer el estado para deshabilitar la interacción con la imagen
-
-            // Restaurar el estado de la imagen
-            fullScreenImage.translationX = imageState.x
-            fullScreenImage.translationY = imageState.y
-            fullScreenImage.rotation = imageState.rotation
-            fullScreenImage.scaleX = imageState.scaleX
-            fullScreenImage.scaleY = imageState.scaleY
-        }
-    }
-
-    private fun getPositionOfImageOnScreen(imageView: ImageView): Pair<Float, Float> {
-        val location = IntArray(2)
-        imageView.getLocationOnScreen(location)
-        val x = location[0].toFloat()
-        val y = location[1].toFloat()
-        return Pair(x, y)
     }
 }

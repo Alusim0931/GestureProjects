@@ -4,7 +4,7 @@ import android.content.Context
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 
-open class ScaleGestureDetector(context: Context, private val listener: CustomScaleGestureDetector.OnScaleGestureListener) : ScaleGestureDetector(context, listener) {
+class ScaleGestureDetector(context: Context, private val listener: OnScaleGestureListener) : ScaleGestureDetector(context, listener) {
     private var scaleFactor = 1.0f
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
