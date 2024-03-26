@@ -1,19 +1,17 @@
 package com.proyectosxml.gestureapp
 
 import android.annotation.SuppressLint
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
-import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import android.view.ScaleGestureDetector
 
-
-
 class MainActivity : AppCompatActivity() {
-    private lateinit var moveView: MoveView
+    private lateinit var moveView: CanvasMoveView
     private lateinit var rotationGestureDetector: RotationGestureDetector
     private lateinit var scaleGestureDetector: ScaleGestureDetector
     private var canInteractWithImage = false // Estado para controlar si se puede interactuar con la imagen
@@ -30,8 +28,10 @@ class MainActivity : AppCompatActivity() {
         val button1 = findViewById<ImageButton>(R.id.button1)
         val canvasView = findViewById<FirstCanvasView>(R.id.canvasView)
 
-        // Inicializar la instancia de MoveView
-        moveView = MoveView(this, canvasView)
+        // Inicializar la instancia de CanvasMoveView
+        val bitmap = BitmapFactory.decodeResource(resources, R.drawable.campi)
+        val bottomBarHeight = 50 // Replace 50 with the actual height of your bottom bar
+        moveView = CanvasMoveView(this, canvasView, bottomBarHeight)
 
         // Configurar el OnClickListener para el botón 1
         button1.setOnClickListener {
@@ -92,6 +92,5 @@ class MainActivity : AppCompatActivity() {
                 // Aquí puedes realizar alguna acción al finalizar el gesto de escala si es necesario
             }
         })
-
     }
 }
