@@ -81,8 +81,10 @@ class FirstCanvasView(context: Context, attrs: AttributeSet) : View(context, att
         canvas.drawColor(Color.WHITE)
 
         // Asegurar que las coordenadas x e y estén dentro de los límites de la pantalla
-        val clampedX = bitmapX.coerceIn(0f, screenWidth.toFloat() - bitmap.width)
-        val clampedY = bitmapY.coerceIn(0f, screenHeight.toFloat() - bitmap.height)
+        val maxX = (screenWidth - bitmap.width).coerceAtLeast(0)
+        val maxY = (screenHeight - bitmap.height).coerceAtLeast(0)
+        val clampedX = bitmapX.coerceIn(0f, maxX.toFloat())
+        val clampedY = bitmapY.coerceIn(0f, maxY.toFloat())
 
         canvas.drawBitmap(bitmap, clampedX, clampedY, paint)
     }
